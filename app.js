@@ -9,7 +9,11 @@ let UIController = (function(){
       inputValue:'.add__value',
       inputButton:'.add__btn',
       incomeContainer: ".income__list",
-      expenseContainer: ".expenses__list"
+      expenseContainer: ".expenses__list",
+      totalBudgetLabel: '.budget__value',
+      incomeLable:'.budget__income--value',
+      expensesLabel:'.budget__expenses--value'
+
   }
   return {
       getInput: function(){
@@ -52,6 +56,49 @@ let UIController = (function(){
             current.value=""
         });
         
+      },
+      // This function initializes the display by clearing the fields and output labels
+      initDisplay:function(){
+        this.clearFields()
+        document.querySelector(DOMStrings.totalBudgetLabel).textContent=0
+        document.querySelector(DOMStrings.incomeLable).textContent=0
+        document.querySelector(DOMStrings.expensesLabel).textContent=0
+
+      },
+// This function formats the output
+      formatDisplay: function(num){
+            //Format the output to currency
+        let dollarUSLocale = Intl.NumberFormat('en-NG')
+        absNum = Math.abs(num)
+        formatedNum = dollarUSLocale.format(absNum)
+        let sign=''
+        let color =''
+        if(num<0){
+            color='#FF5049'
+            sign = '- '  
+        }
+        else if(num>0){
+            sign ='+ '
+            color='white'
+        }
+        else{
+            color='white'
+        }
+        return {
+            formatedNum:formatedNum,
+            sign:sign,
+            color:color
+        }
+
+      },
+      displayBudget: function(totalBudget,income,expenses){
+        let formatedTotalDisplay = this.formatDisplay(totalBudget)
+        let formatedIncome = this.formatDisplay(income)
+        let formatedExpenses = this.formatDisplay(expenses)
+        document.querySelector(DOMStrings.totalBudgetLabel).style.color =formatedTotalDisplay.color
+          document.querySelector(DOMStrings.totalBudgetLabel).textContent=""+formatedTotalDisplay.sign+formatedTotalDisplay.formatedNum
+          document.querySelector(DOMStrings.incomeLable).textContent=formatedIncome.sign+formatedIncome.formatedNum
+          document.querySelector(DOMStrings.expensesLabel).textContent=formatedExpenses.sign+formatedExpenses.formatedNum
       }
   }
 })();
@@ -187,6 +234,8 @@ let appController = (function(UICtrl,budgetCtrl){
         budgetController.calcBudget()
         // Get the an object containing the calculated budget, income, expense and percentage
         budget = budgetController.getBudget()
+
+        UIController.displayBudget(budget.budgetTotal,budget.totalIncome,budget.totalExpenses)
         //budgetController.testing()
         console.log(budget)
         //5. Display the Budget on the UI
@@ -197,6 +246,7 @@ let appController = (function(UICtrl,budgetCtrl){
     return{
         init: function(){
             setEventListeners()
+            UIController.initDisplay()
             console.log('Application is Starting...')
         }
     }
