@@ -16,7 +16,7 @@ let UIController = (function(){
           return{
               type: document.querySelector(DOMStrings.inputType).value,
               description:document.querySelector(DOMStrings.inputDescription).value,
-              value: document.querySelector(DOMStrings.inputValue).value
+              value: parseFloat(document.querySelector(DOMStrings.inputValue).value)
 
           }
       },
@@ -78,9 +78,22 @@ let budgetController = (function(){
             expenses:[]
         },
         totals:{
-            income:0,
+            incomes:0,
             expenses:0
+        },
+        budgetTotal:0,
+        percentage:0
+    }
+    function calSum(type){
+        var sum =0
+        for(item of data.allItems[type]){
+            sum=sum+item.value
+            
         }
+        
+        data.totals[type]= sum
+        // console.log( data.totals)
+        
     }
     return {
         addItem: function(type,des, value){
@@ -104,9 +117,32 @@ let budgetController = (function(){
             data.allItems[type].push(newItem)
             return newItem
         },
-        testing: function(){
-            console.log(data)
-        }
+        calcBudget:function(){
+            //1. calculate the sum of the incomes and the expenses
+            calSum('incomes')
+            calSum('expenses')
+
+            //2. Calculate the total budget
+            data.budgetTotal = data.totals.incomes-data.totals.expenses
+            //3. Calculate the percentage of the of income used by the expenses
+            data.percentage = Math.round((data.totals.expenses/data.totals.incomes)*100)
+
+        },
+        getBudget: function(){
+            return{
+                budgetTotal:data.budgetTotal,
+                totalIncome:data.totals.incomes,
+                totalExpenses:data.totals.expenses,
+                percentage:data.percentage
+
+            }
+        },
+        //This is use for testing the budget Controller
+        // testing: function(){
+        //     console.log(data.totals.incomes)
+        //     console.log(data.totals.expenses)
+            
+        // }
         
     }
    
@@ -139,6 +175,7 @@ let appController = (function(UICtrl,budgetCtrl){
     function addItem(){
         //1. Get input values
         let UI = UIController.getInput()
+        if(UI.description!=""&& !isNaN(UI.value)&& UI.value>0){
         //2. Add the item to the budget Calculator
         let newItem = budgetController.addItem(UI.type,UI.description,UI.value);
         
@@ -147,8 +184,14 @@ let appController = (function(UICtrl,budgetCtrl){
         // Clear the inputs fields
         UIController.clearFields()
         //4. Calculate the budget
+        budgetController.calcBudget()
+        // Get the an object containing the calculated budget, income, expense and percentage
+        budget = budgetController.getBudget()
+        //budgetController.testing()
+        console.log(budget)
         //5. Display the Budget on the UI
         //console.log('Get Input function')
+        }
     }
 
     return{
